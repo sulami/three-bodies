@@ -5,6 +5,8 @@ out [macroquad](https://docs.rs/macroquad/latest/macroquad/index.html).
 
 https://github.com/sulami/three-bodies/assets/1843193/d8a41847-a475-46c8-8eb9-396d64411175
 
+A known issue right now is that the bodies wrap around the viewport, but gravity does not, which leads to weird behaviour near the edges.
+
 ## Building
 
 For the native version, run

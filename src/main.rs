@@ -1,4 +1,7 @@
-use std::fmt::Display;
+use std::{
+    fmt::Display,
+    collections::VecDeque
+};
 
 use macroquad::prelude::*;
 
@@ -10,7 +13,7 @@ async fn main() {
         Body::new_random(1),
         Body::new_random(2),
     ];
-    let mut trails: Vec<Trail> = vec![];
+    let mut trails: VecDeque<Trail> = VecDeque::new();
     let mut running = true;
     let mut show_ui = true;
     let mut auto_restart = false;
@@ -53,6 +56,9 @@ async fn main() {
             bodies = new_bodies;
             trails.iter_mut().for_each(|trail| trail.colour.a *= 0.995);
             trails.extend(bodies.iter().map(Trail::from));
+            while trails.front().map_or(false, |trail| trail.colour.a < 0.01) {
+                trails.pop_front();
+            }
             bodies.iter_mut().for_each(Body::update_position);
 
             // If two bodies collide, stop the simulation.
