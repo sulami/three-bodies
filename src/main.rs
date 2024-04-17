@@ -45,6 +45,7 @@ async fn main() {
 
             // Update positions based on new velocities.
             bodies = new_bodies;
+            trails.iter_mut().for_each(|trail| trail.colour.a *= 0.995);
             trails.extend(bodies.iter().map(Trail::from));
             bodies.iter_mut().for_each(Body::update_position);
 
