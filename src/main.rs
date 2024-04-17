@@ -112,14 +112,14 @@ impl Body {
     /// Creates a new body with random properties.
     fn new_random(id: usize) -> Self {
         let colour = Color::new(
-            rand::gen_range(0.0, 1.0),
-            rand::gen_range(0.0, 1.0),
-            rand::gen_range(0.0, 1.0),
+            rand::gen_range(0.2, 1.0),
+            rand::gen_range(0.2, 1.0),
+            rand::gen_range(0.2, 1.0),
             1.0,
         );
         let position = vec2(
-            rand::gen_range(100., screen_width() - 100.),
-            rand::gen_range(100., screen_height() - 100.),
+            rand::gen_range(screen_width() * 0.25, screen_width() * 0.75),
+            rand::gen_range(screen_height() * 0.25, screen_height() * 0.75),
         );
         let velocity = vec2(rand::gen_range(-1.0, 1.0), rand::gen_range(-1.0, 1.0));
         let mass = rand::gen_range(1., 10.);
