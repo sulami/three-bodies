@@ -8,10 +8,16 @@ async fn main() {
         Body::new_random(1),
         Body::new_random(2),
     ];
+    let mut trails: Vec<Trail> = vec![];
     let mut running = true;
 
     loop {
         clear_background(BLACK);
+
+        // Exit on escape
+        if is_key_released(KeyCode::Escape) {
+            break;
+        }
 
         // Reset on space.
         if is_key_released(KeyCode::Space) {
@@ -20,6 +26,7 @@ async fn main() {
                 Body::new_random(1),
                 Body::new_random(2),
             ];
+            trails.clear();
             running = true;
         }
 
@@ -43,11 +50,20 @@ async fn main() {
 
             // Update positions based on new velocities and redraw.
             bodies = new_bodies;
+            bodies.iter().for_each(|body| {
+                trails.push(Trail {
+                    position: body.position,
+                    colour: body.colour,
+                });
+            });
             bodies.iter_mut().for_each(|body| body.update_position());
         }
 
-        // Draw all bodies.
+        // Draw all bodies & trails.
         bodies.iter().for_each(|body| body.draw());
+        trails.iter().for_each(|trail| {
+            draw_circle(trail.position.x, trail.position.y, 1.0, trail.colour);
+        });
 
         // If two bodies collide, stop the simulation.
         if bodies.iter().any(|body| {
@@ -60,6 +76,12 @@ async fn main() {
 
         next_frame().await
     }
+}
+
+#[derive(Clone, Copy)]
+struct Trail {
+    position: Vec2,
+    colour: Color,
 }
 
 #[derive(Clone, Copy)]
