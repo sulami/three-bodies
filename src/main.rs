@@ -105,6 +105,13 @@ fn draw_ui(bodies: &[Body], auto_restart: bool) {
             16.0,
             body.colour,
         );
+        draw_text(
+            &format!("v {:.2}", body.velocity.length()),
+            body.position.x + 10.0,
+            body.position.y + 20.0,
+            16.0,
+            body.colour,
+        );
     }
 
     // Instructions
