@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use macroquad::prelude::*;
 
 #[macroquad::main("Three Bodies")]
@@ -10,6 +12,7 @@ async fn main() {
     ];
     let mut trails: Vec<Trail> = vec![];
     let mut running = true;
+    let mut show_ui = true;
 
     loop {
         // Exit on escape
@@ -26,6 +29,11 @@ async fn main() {
             ];
             trails.clear();
             running = true;
+        }
+
+        // Toggle UI on U.
+        if is_key_released(KeyCode::U) {
+            show_ui = !show_ui;
         }
 
         if running {
@@ -45,6 +53,9 @@ async fn main() {
         clear_background(BLACK);
         bodies.iter().for_each(Body::draw);
         trails.iter().for_each(Trail::draw);
+        if show_ui {
+            draw_ui(&bodies);
+        }
 
         // If two bodies collide, stop the simulation.
         if has_collision(&bodies) {
@@ -64,8 +75,31 @@ fn has_collision(bodies: &[Body]) -> bool {
     })
 }
 
+/// Draws the UI.
+fn draw_ui(bodies: &[Body]) {
+    // Body info
+    for body in bodies {
+        draw_text(
+            &format!("{}", body),
+            10.0,
+            20.0 * (body.id as f32 + 1.0),
+            20.0,
+            body.colour,
+        );
+    }
+
+    // Instructions
+    draw_text(
+        "Press SPACE to reset, ESC to exit, U to toggle UI",
+        10.0,
+        screen_height() - 10.0,
+        20.0,
+        WHITE,
+    );
+}
+
 /// A body in the simulation.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 struct Body {
     id: usize,
     colour: Color,
@@ -88,7 +122,7 @@ impl Body {
             rand::gen_range(100., screen_height() - 100.),
         );
         let velocity = vec2(rand::gen_range(-1.0, 1.0), rand::gen_range(-1.0, 1.0));
-        let mass = rand::gen_range(5., 10.);
+        let mass = rand::gen_range(1., 10.);
         Self {
             id,
             colour,
@@ -104,7 +138,7 @@ impl Body {
     }
 
     /// Updates the velocity of the body based on the forces applied by other bodies.
-    fn update_velocity<'a>(&mut self, others: impl Iterator<Item = Self>) {
+    fn update_velocity(&mut self, others: impl Iterator<Item = Self>) {
         self.velocity += others
             .filter(|&other| other.id != self.id)
             .map(|other| {
@@ -122,6 +156,16 @@ impl Body {
     /// Updates the position of the body based on its velocity.
     fn update_position(&mut self) {
         self.position += self.velocity;
+    }
+}
+
+impl Display for Body {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Body {}: mass {:.2} position ({:.2}, {:.2})",
+            self.id, self.mass, self.position.x, self.position.y
+        )
     }
 }
 
