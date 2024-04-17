@@ -31,21 +31,9 @@ async fn main() {
         if running {
             // Calculate forces to apply based on last frame's positions.
             let mut new_bodies = bodies;
-            for body in new_bodies.iter_mut() {
-                body.velocity += bodies
-                    .iter()
-                    .filter(|&other| other.id != body.id)
-                    .map(|other| {
-                        let delta = other.position - body.position;
-                        let distance = delta.length();
-                        let direction = delta.normalize();
-                        let force = (body.mass * other.mass) / (distance * distance);
-                        direction * force
-                    })
-                    .reduce(|acc, force| acc + force)
-                    .map(|force| 9.81 * force / body.mass)
-                    .unwrap();
-            }
+            new_bodies.iter_mut().for_each(|body| {
+                body.update_velocity(bodies.iter().copied());
+            });
 
             // Update positions based on new velocities.
             bodies = new_bodies;
@@ -59,16 +47,20 @@ async fn main() {
         trails.iter().for_each(Trail::draw);
 
         // If two bodies collide, stop the simulation.
-        if bodies.iter().any(|body| {
-            bodies
-                .iter()
-                .any(|other| body.id != other.id && body.position.distance(other.position) < 10.0)
-        }) {
+        if has_collision(&bodies) {
             running = false;
         }
 
         next_frame().await
     }
+}
+
+fn has_collision(bodies: &[Body]) -> bool {
+    bodies.iter().any(|body| {
+        bodies
+            .iter()
+            .any(|other| body.id != other.id && body.position.distance(other.position) < 10.0)
+    })
 }
 
 #[derive(Clone, Copy)]
@@ -105,6 +97,21 @@ impl Body {
 
     fn draw(&self) {
         draw_circle(self.position.x, self.position.y, 5.0, self.colour);
+    }
+
+    fn update_velocity<'a>(&mut self, others: impl Iterator<Item = Self>) {
+        self.velocity += others
+            .filter(|&other| other.id != self.id)
+            .map(|other| {
+                let delta = other.position - self.position;
+                let distance = delta.length();
+                let direction = delta.normalize();
+                let force = (self.mass * other.mass) / (distance * distance);
+                direction * force
+            })
+            .reduce(|acc, force| acc + force)
+            .map(|force| 9.81 * force / self.mass)
+            .unwrap();
     }
 
     fn update_position(&mut self) {
