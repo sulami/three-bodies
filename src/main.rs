@@ -157,6 +157,16 @@ impl Body {
     /// Updates the position of the body based on its velocity.
     fn update_position(&mut self) {
         self.position += self.velocity;
+        if self.position.x > screen_width() {
+            self.position.x -= screen_width();
+        } else if self.position.x < 0. {
+            self.position.x += screen_width();
+        }
+        if self.position.y > screen_height() {
+            self.position.y -= screen_height();
+        } else if self.position.y < 0. {
+            self.position.y += screen_height();
+        }
     }
 }
 
