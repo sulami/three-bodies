@@ -1,4 +1,4 @@
-use std::{collections::VecDeque, fmt::Display};
+use std::collections::VecDeque;
 
 use macroquad::prelude::*;
 
@@ -75,7 +75,7 @@ async fn main() {
         bodies.iter().for_each(Body::draw);
         trails.iter().for_each(Trail::draw);
         if show_ui {
-            draw_ui(&bodies, auto_restart);
+            draw_ui(&bodies, auto_restart, running);
         }
 
         next_frame().await
@@ -95,11 +95,21 @@ fn has_collision(bodies: &[Body]) -> bool {
 }
 
 /// Draws the UI.
-fn draw_ui(bodies: &[Body], auto_restart: bool) {
+fn draw_ui(bodies: &[Body], auto_restart: bool, running: bool) {
+    if !running {
+        draw_text(
+            "COLLISION",
+            screen_width() / 2.0 - 40.0,
+            screen_height() / 2.0,
+            32.0,
+            WHITE,
+        );
+    }
+
     // Body info
     for body in bodies {
         draw_text(
-            &format!("{}", body),
+            &format!("m {:.2}", body.mass),
             body.position.x + 10.0,
             body.position.y + 10.0,
             16.0,
@@ -129,7 +139,7 @@ fn draw_ui(bodies: &[Body], auto_restart: bool) {
 }
 
 /// A body in the simulation.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy)]
 struct Body {
     id: usize,
     colour: Color,
@@ -196,12 +206,6 @@ impl Body {
         } else if self.position.y < 0. {
             self.position.y += screen_height();
         }
-    }
-}
-
-impl Display for Body {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "m {:.2}", self.mass)
     }
 }
 
