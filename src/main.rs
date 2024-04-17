@@ -1,9 +1,11 @@
-use std::{
-    fmt::Display,
-    collections::VecDeque
-};
+use std::{collections::VecDeque, fmt::Display};
 
 use macroquad::prelude::*;
+
+#[cfg(target_arch = "wasm32")]
+const IS_WASM: bool = true;
+#[cfg(not(target_arch = "wasm32"))]
+const IS_WASM: bool = false;
 
 #[macroquad::main("Three Bodies")]
 async fn main() {
@@ -16,16 +18,19 @@ async fn main() {
     let mut trails: VecDeque<Trail> = VecDeque::new();
     let mut running = true;
     let mut show_ui = true;
-    let mut auto_restart = false;
+    let mut auto_restart = IS_WASM;
 
     loop {
         // Exit on escape.
-        if is_key_released(KeyCode::Escape) {
+        if !IS_WASM && is_key_released(KeyCode::Escape) {
             break;
         }
 
         // Reset on space, or if auto restart is on.
-        if is_key_released(KeyCode::Space) || (!running && auto_restart) {
+        if is_key_released(KeyCode::Space)
+            || is_mouse_button_released(MouseButton::Left)
+            || (!running && auto_restart)
+        {
             bodies = [
                 Body::new_random(0),
                 Body::new_random(1),
@@ -97,7 +102,7 @@ fn draw_ui(bodies: &[Body], auto_restart: bool) {
             &format!("{}", body),
             10.0,
             20.0 * (body.id as f32 + 1.0),
-            20.0,
+            16.0,
             body.colour,
         );
     }
@@ -105,12 +110,13 @@ fn draw_ui(bodies: &[Body], auto_restart: bool) {
     // Instructions
     draw_text(
         &format!(
-            "Press SPACE to reset, ESC to exit, U to toggle UI, R to toggle auto-restart ({})",
+            "Press SPACE/CLICK/TAP to reset, {}U to toggle UI, R to toggle auto-restart ({})",
+            if IS_WASM { "" } else { "ESC to exit, " },
             if auto_restart { "on" } else { "off" }
         ),
         10.0,
         screen_height() - 10.0,
-        20.0,
+        16.0,
         WHITE,
     );
 }
