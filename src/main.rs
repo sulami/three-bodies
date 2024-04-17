@@ -55,6 +55,7 @@ async fn main() {
     }
 }
 
+/// Returns true if any two bodies are colliding.
 fn has_collision(bodies: &[Body]) -> bool {
     bodies.iter().any(|body| {
         bodies
@@ -63,6 +64,7 @@ fn has_collision(bodies: &[Body]) -> bool {
     })
 }
 
+/// A body in the simulation.
 #[derive(Clone, Copy)]
 struct Body {
     id: usize,
@@ -73,6 +75,7 @@ struct Body {
 }
 
 impl Body {
+    /// Creates a new body with random properties.
     fn new_random(id: usize) -> Self {
         let colour = Color::new(
             rand::gen_range(0.0, 1.0),
@@ -95,10 +98,12 @@ impl Body {
         }
     }
 
+    /// Draws the body on the screen.
     fn draw(&self) {
         draw_circle(self.position.x, self.position.y, 5.0, self.colour);
     }
 
+    /// Updates the velocity of the body based on the forces applied by other bodies.
     fn update_velocity<'a>(&mut self, others: impl Iterator<Item = Self>) {
         self.velocity += others
             .filter(|&other| other.id != self.id)
@@ -114,11 +119,13 @@ impl Body {
             .unwrap();
     }
 
+    /// Updates the position of the body based on its velocity.
     fn update_position(&mut self) {
         self.position += self.velocity;
     }
 }
 
+/// A trail left behind by a body.
 #[derive(Clone, Copy)]
 struct Trail {
     position: Vec2,
@@ -126,6 +133,7 @@ struct Trail {
 }
 
 impl Trail {
+    /// Draws the trail on the screen.
     fn draw(&self) {
         draw_circle(self.position.x, self.position.y, 1.0, self.colour);
     }
