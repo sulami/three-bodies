@@ -66,11 +66,14 @@ async fn main() {
 
 /// Returns true if any two bodies are colliding.
 fn has_collision(bodies: &[Body]) -> bool {
-    bodies.iter().any(|body| {
-        bodies
-            .iter()
-            .any(|other| body.id != other.id && body.position.distance(other.position) < 10.0)
-    })
+    for i in 0..bodies.len() {
+        for j in i + 1..bodies.len() {
+            if bodies[i].position.distance(bodies[j].position) < 10.0 {
+                return true;
+            }
+        }
+    }
+    false
 }
 
 /// Draws the UI.
