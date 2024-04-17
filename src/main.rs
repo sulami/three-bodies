@@ -47,6 +47,9 @@ async fn main() {
             bodies = new_bodies;
             trails.extend(bodies.iter().map(Trail::from));
             bodies.iter_mut().for_each(Body::update_position);
+
+            // If two bodies collide, stop the simulation.
+            running = !has_collision(&bodies)
         }
 
         // Draw all bodies & trails.
@@ -55,11 +58,6 @@ async fn main() {
         trails.iter().for_each(Trail::draw);
         if show_ui {
             draw_ui(&bodies);
-        }
-
-        // If two bodies collide, stop the simulation.
-        if has_collision(&bodies) {
-            running = false;
         }
 
         next_frame().await
