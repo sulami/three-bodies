@@ -86,7 +86,7 @@ async fn main() {
 fn has_collision(bodies: &[Body]) -> bool {
     for i in 0..bodies.len() {
         for j in i + 1..bodies.len() {
-            if bodies[i].position.distance(bodies[j].position) < 10.0 {
+            if bodies[i].position.distance(bodies[j].position) <= bodies[i].mass + bodies[j].mass {
                 return true;
             }
         }
@@ -157,7 +157,7 @@ impl Body {
 
     /// Draws the body on the screen.
     fn draw(&self) {
-        draw_circle(self.position.x, self.position.y, 5.0, self.colour);
+        draw_circle(self.position.x, self.position.y, self.mass, self.colour);
     }
 
     /// Updates the velocity of the body based on the forces applied by other bodies.
