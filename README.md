@@ -7,6 +7,15 @@ https://github.com/sulami/three-bodies/assets/1843193/d8a41847-a475-46c8-8eb9-39
 
 ## Building
 
+For the native version, run
+
 ```sh
 cargo run --release
+```
+
+For the wasm version, run
+
+```sh
+cargo build --target wasm32-unknown-unknown --release
+cp target/wasm32-unknown-unknown/release/three-bodies.wasm docs/
 ```
