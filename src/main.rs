@@ -125,17 +125,20 @@ fn draw_ui(bodies: &[Body], auto_restart: bool, running: bool) {
     }
 
     // Instructions
-    draw_text(
+    let instructions = [
+        "[SPACE/CLICK/TAP] reset",
+        "[U] toggle UI",
         &format!(
-            "Press SPACE/CLICK/TAP to reset, {}U to toggle UI, R to toggle auto-restart ({})",
-            if IS_WASM { "" } else { "ESC to exit, " },
+            "[R] toggle auto-restart ({})",
             if auto_restart { "on" } else { "off" }
         ),
-        10.0,
-        screen_height() - 10.0,
-        16.0,
-        WHITE,
-    );
+    ];
+    instructions
+        .iter()
+        .enumerate()
+        .for_each(|(idx, instruction)| {
+            draw_text(instruction, 10.0, 20.0 + idx as f32 * 14.0, 16.0, WHITE)
+        });
 }
 
 /// A body in the simulation.
