@@ -12,8 +12,6 @@ async fn main() {
     let mut running = true;
 
     loop {
-        clear_background(BLACK);
-
         // Exit on escape
         if is_key_released(KeyCode::Escape) {
             break;
@@ -45,25 +43,20 @@ async fn main() {
                         direction * force
                     })
                     .reduce(|acc, force| acc + force)
+                    .map(|force| 9.81 * force / body.mass)
                     .unwrap();
             }
 
-            // Update positions based on new velocities and redraw.
+            // Update positions based on new velocities.
             bodies = new_bodies;
-            bodies.iter().for_each(|body| {
-                trails.push(Trail {
-                    position: body.position,
-                    colour: body.colour,
-                });
-            });
-            bodies.iter_mut().for_each(|body| body.update_position());
+            trails.extend(bodies.iter().map(Trail::from));
+            bodies.iter_mut().for_each(Body::update_position);
         }
 
         // Draw all bodies & trails.
-        bodies.iter().for_each(|body| body.draw());
-        trails.iter().for_each(|trail| {
-            draw_circle(trail.position.x, trail.position.y, 1.0, trail.colour);
-        });
+        clear_background(BLACK);
+        bodies.iter().for_each(Body::draw);
+        trails.iter().for_each(Trail::draw);
 
         // If two bodies collide, stop the simulation.
         if bodies.iter().any(|body| {
@@ -76,12 +69,6 @@ async fn main() {
 
         next_frame().await
     }
-}
-
-#[derive(Clone, Copy)]
-struct Trail {
-    position: Vec2,
-    colour: Color,
 }
 
 #[derive(Clone, Copy)]
@@ -122,5 +109,26 @@ impl Body {
 
     fn update_position(&mut self) {
         self.position += self.velocity;
+    }
+}
+
+#[derive(Clone, Copy)]
+struct Trail {
+    position: Vec2,
+    colour: Color,
+}
+
+impl Trail {
+    fn draw(&self) {
+        draw_circle(self.position.x, self.position.y, 1.0, self.colour);
+    }
+}
+
+impl From<&Body> for Trail {
+    fn from(body: &Body) -> Self {
+        Self {
+            position: body.position,
+            colour: body.colour,
+        }
     }
 }
