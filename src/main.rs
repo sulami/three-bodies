@@ -100,8 +100,8 @@ fn draw_ui(bodies: &[Body], auto_restart: bool) {
     for body in bodies {
         draw_text(
             &format!("{}", body),
-            10.0,
-            20.0 * (body.id as f32 + 1.0),
+            body.position.x + 10.0,
+            body.position.y + 10.0,
             16.0,
             body.colour,
         );
@@ -194,11 +194,7 @@ impl Body {
 
 impl Display for Body {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Body {}: mass {:.2} position ({:.2}, {:.2})",
-            self.id, self.mass, self.position.x, self.position.y
-        )
+        write!(f, "m {:.2}", self.mass)
     }
 }
 
