@@ -13,15 +13,16 @@ async fn main() {
     let mut trails: Vec<Trail> = vec![];
     let mut running = true;
     let mut show_ui = true;
+    let mut auto_restart = false;
 
     loop {
-        // Exit on escape
+        // Exit on escape.
         if is_key_released(KeyCode::Escape) {
             break;
         }
 
-        // Reset on space.
-        if is_key_released(KeyCode::Space) {
+        // Reset on space, or if auto restart is on.
+        if is_key_released(KeyCode::Space) || (!running && auto_restart) {
             bodies = [
                 Body::new_random(0),
                 Body::new_random(1),
@@ -34,6 +35,11 @@ async fn main() {
         // Toggle UI on U.
         if is_key_released(KeyCode::U) {
             show_ui = !show_ui;
+        }
+
+        // Toggle auto-restart on R.
+        if is_key_released(KeyCode::R) {
+            auto_restart = !auto_restart;
         }
 
         if running {
@@ -50,7 +56,7 @@ async fn main() {
             bodies.iter_mut().for_each(Body::update_position);
 
             // If two bodies collide, stop the simulation.
-            running = !has_collision(&bodies)
+            running = !has_collision(&bodies);
         }
 
         // Draw all bodies & trails.
@@ -58,7 +64,7 @@ async fn main() {
         bodies.iter().for_each(Body::draw);
         trails.iter().for_each(Trail::draw);
         if show_ui {
-            draw_ui(&bodies);
+            draw_ui(&bodies, auto_restart);
         }
 
         next_frame().await
@@ -78,7 +84,7 @@ fn has_collision(bodies: &[Body]) -> bool {
 }
 
 /// Draws the UI.
-fn draw_ui(bodies: &[Body]) {
+fn draw_ui(bodies: &[Body], auto_restart: bool) {
     // Body info
     for body in bodies {
         draw_text(
@@ -92,7 +98,10 @@ fn draw_ui(bodies: &[Body]) {
 
     // Instructions
     draw_text(
-        "Press SPACE to reset, ESC to exit, U to toggle UI",
+        &format!(
+            "Press SPACE to reset, ESC to exit, U to toggle UI, R to toggle auto-restart ({})",
+            if auto_restart { "on" } else { "off" }
+        ),
         10.0,
         screen_height() - 10.0,
         20.0,
