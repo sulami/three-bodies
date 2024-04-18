@@ -97,7 +97,7 @@ fn draw_ui(bodies: &[Body], show_ui: Ui, auto_restart: bool, running: bool) {
     if !running {
         draw_text(
             "COLLISION",
-            screen_width() / 2.0 - 40.0,
+            screen_width() / 2.0 - 64.0, // NB Manually centred.
             screen_height() / 2.0,
             32.0,
             WHITE,
