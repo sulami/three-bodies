@@ -86,7 +86,7 @@ async fn main() {
 fn has_collision(bodies: &[Body]) -> bool {
     for i in 0..bodies.len() {
         for j in i + 1..bodies.len() {
-            if bodies[i].position.distance(bodies[j].position) <= bodies[i].mass + bodies[j].mass {
+            if bodies[i].collides_with(&bodies[j]) {
                 return true;
             }
         }
@@ -209,6 +209,11 @@ impl Body {
         } else if self.position.y < 0. {
             self.position.y += screen_height();
         }
+    }
+
+    /// Returns true if this body collides with another.
+    fn collides_with(&self, other: &Self) -> bool {
+        self.position.distance(other.position) <= self.mass + other.mass
     }
 }
 
