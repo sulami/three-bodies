@@ -137,7 +137,7 @@ fn draw_ui(bodies: &[Body], auto_restart: bool, running: bool) {
         .iter()
         .enumerate()
         .for_each(|(idx, instruction)| {
-            draw_text(instruction, 10.0, 20.0 + idx as f32 * 14.0, 16.0, WHITE)
+            draw_text(instruction, 10.0, screen_height() - 14.0 - idx as f32 * 14.0, 16.0, WHITE)
         });
 }
 
