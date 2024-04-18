@@ -19,6 +19,7 @@ async fn main() {
     let mut running = true;
     let mut show_ui = Ui::Full;
     let mut auto_restart = IS_WASM;
+    let mut elastic_collisions = false;
 
     loop {
         // Exit on escape.
@@ -50,11 +51,16 @@ async fn main() {
             auto_restart = !auto_restart;
         }
 
+        // Toggle elastic collisions on C.
+        if is_key_released(KeyCode::C) {
+            elastic_collisions = !elastic_collisions;
+        }
+
         if running {
             // Calculate forces to apply based on last frame's positions.
             let mut new_bodies = bodies;
             new_bodies.iter_mut().for_each(|body| {
-                body.update_velocity(bodies.iter().copied());
+                body.update_velocity(bodies.iter().copied(), elastic_collisions);
             });
 
             // Update positions based on new velocities.
@@ -66,15 +72,17 @@ async fn main() {
             }
             bodies.iter_mut().for_each(Body::update_position);
 
-            // If two bodies collide, stop the simulation.
-            running = !has_collision(&bodies);
+            if !elastic_collisions {
+                // If two bodies collide, stop the simulation.
+                running = !has_collision(&bodies);
+            }
         }
 
         // Draw all bodies & trails.
         clear_background(BLACK);
         bodies.iter().for_each(Body::draw);
         trails.iter().for_each(Trail::draw);
-        draw_ui(&bodies, show_ui, auto_restart, running);
+        draw_ui(&bodies, show_ui, auto_restart, running, elastic_collisions);
 
         next_frame().await
     }
@@ -93,7 +101,13 @@ fn has_collision(bodies: &[Body]) -> bool {
 }
 
 /// Draws the UI.
-fn draw_ui(bodies: &[Body], show_ui: Ui, auto_restart: bool, running: bool) {
+fn draw_ui(
+    bodies: &[Body],
+    show_ui: Ui,
+    auto_restart: bool,
+    running: bool,
+    elastic_collisions: bool,
+) {
     if !running {
         draw_text(
             "COLLISION",
@@ -132,6 +146,10 @@ fn draw_ui(bodies: &[Body], show_ui: Ui, auto_restart: bool, running: bool) {
             &format!(
                 "[R] toggle auto-restart ({})",
                 if auto_restart { "on" } else { "off" }
+            ),
+            &format!(
+                "[C] toggle elastic collisions ({})",
+                if elastic_collisions { "on" } else { "off" }
             ),
         ];
         instructions
@@ -207,9 +225,36 @@ impl Body {
     }
 
     /// Updates the velocity of the body based on the forces applied by other bodies.
-    fn update_velocity(&mut self, others: impl Iterator<Item = Self>) {
-        self.velocity += others
-            .filter(|&other| other.id != self.id)
+    fn update_velocity(
+        &mut self,
+        bodies: impl Iterator<Item = Self> + Clone,
+        elastic_collisions: bool,
+    ) {
+        let mut collided = elastic_collisions;
+        if elastic_collisions {
+            self.velocity = bodies
+                .clone()
+                .filter(|&body| body.id != self.id)
+                .filter(|other| self.collides_with(other))
+                .map(|other| {
+                    let m1 = self.mass;
+                    let m2 = other.mass;
+                    let v1 = self.velocity;
+                    let v2 = other.velocity;
+                    let v1_prime = ((m1 - m2) / (m1 + m2)) * v1 + ((2.0 * m2) / (m1 + m2)) * v2;
+                    v1_prime
+                })
+                .reduce(|acc, velocity| acc + velocity)
+                .unwrap_or_else(|| {
+                    collided = false;
+                    self.velocity
+                });
+        }
+        if collided {
+            return;
+        }
+        self.velocity += bodies
+            .filter(|&body| body.id != self.id)
             .map(|other| {
                 let mut delta = other.position - self.position;
                 if delta.x.abs() > screen_width() / 2.0 {
