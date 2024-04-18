@@ -17,7 +17,7 @@ async fn main() {
     ];
     let mut trails: VecDeque<Trail> = VecDeque::new();
     let mut running = true;
-    let mut show_ui = true;
+    let mut show_ui = Ui::Full;
     let mut auto_restart = IS_WASM;
 
     loop {
@@ -42,7 +42,7 @@ async fn main() {
 
         // Toggle UI on U.
         if is_key_released(KeyCode::U) {
-            show_ui = !show_ui;
+            show_ui.toggle();
         }
 
         // Toggle auto-restart on R.
@@ -74,9 +74,7 @@ async fn main() {
         clear_background(BLACK);
         bodies.iter().for_each(Body::draw);
         trails.iter().for_each(Trail::draw);
-        if show_ui {
-            draw_ui(&bodies, auto_restart, running);
-        }
+        draw_ui(&bodies, show_ui, auto_restart, running);
 
         next_frame().await
     }
@@ -95,7 +93,7 @@ fn has_collision(bodies: &[Body]) -> bool {
 }
 
 /// Draws the UI.
-fn draw_ui(bodies: &[Body], auto_restart: bool, running: bool) {
+fn draw_ui(bodies: &[Body], show_ui: Ui, auto_restart: bool, running: bool) {
     if !running {
         draw_text(
             "COLLISION",
@@ -107,38 +105,66 @@ fn draw_ui(bodies: &[Body], auto_restart: bool, running: bool) {
     }
 
     // Body info
-    for body in bodies {
-        draw_text(
-            &format!("m {:.2}", body.mass),
-            body.position.x + 10.0,
-            body.position.y + 10.0,
-            16.0,
-            body.colour,
-        );
-        draw_text(
-            &format!("v {:.2}", body.velocity.length()),
-            body.position.x + 10.0,
-            body.position.y + 20.0,
-            16.0,
-            body.colour,
-        );
+    if matches!(show_ui, Ui::Full | Ui::Minimal) {
+        for body in bodies {
+            draw_text(
+                &format!("m {:.2}", body.mass),
+                body.position.x + 10.0,
+                body.position.y + 10.0,
+                16.0,
+                body.colour,
+            );
+            draw_text(
+                &format!("v {:.2}", body.velocity.length()),
+                body.position.x + 10.0,
+                body.position.y + 20.0,
+                16.0,
+                body.colour,
+            );
+        }
     }
 
     // Instructions
-    let instructions = [
-        "[SPACE/CLICK/TAP] reset",
-        "[U] toggle UI",
-        &format!(
-            "[R] toggle auto-restart ({})",
-            if auto_restart { "on" } else { "off" }
-        ),
-    ];
-    instructions
-        .iter()
-        .enumerate()
-        .for_each(|(idx, instruction)| {
-            draw_text(instruction, 10.0, screen_height() - 14.0 - idx as f32 * 14.0, 16.0, WHITE)
-        });
+    if matches!(show_ui, Ui::Full) {
+        let instructions = [
+            "[SPACE/CLICK/TAP] reset",
+            "[U] toggle UI",
+            &format!(
+                "[R] toggle auto-restart ({})",
+                if auto_restart { "on" } else { "off" }
+            ),
+        ];
+        instructions
+            .iter()
+            .enumerate()
+            .for_each(|(idx, instruction)| {
+                draw_text(
+                    instruction,
+                    10.0,
+                    screen_height() - 14.0 - idx as f32 * 14.0,
+                    16.0,
+                    WHITE,
+                )
+            });
+    }
+}
+
+#[derive(Clone, Copy)]
+enum Ui {
+    Full,
+    Minimal,
+    Off,
+}
+
+impl Ui {
+    /// Toggles to the next UI state.
+    fn toggle(&mut self) {
+        *self = match self {
+            Ui::Off => Ui::Minimal,
+            Ui::Minimal => Ui::Full,
+            Ui::Full => Ui::Off,
+        }
+    }
 }
 
 /// A body in the simulation.
