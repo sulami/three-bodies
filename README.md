@@ -7,7 +7,7 @@ An online version can be found [here](https://three-bodies.sulami.xyz/).
 
 https://github.com/sulami/three-bodies/assets/1843193/d8a41847-a475-46c8-8eb9-396d64411175
 
-A known issue right now is that the bodies wrap around the viewport, but gravity does not, which leads to weird behaviour near the edges.
+_Note:_ If you are using a non-standard keyboard layout, the controls do not take that into account.
 
 ## Building
 

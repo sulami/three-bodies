@@ -211,7 +211,14 @@ impl Body {
         self.velocity += others
             .filter(|&other| other.id != self.id)
             .map(|other| {
-                let delta = other.position - self.position;
+                let mut delta = other.position - self.position;
+                if delta.x.abs() > screen_width() / 2.0 {
+                    delta.x = delta.x - delta.x.signum() * screen_width();
+                }
+
+                if delta.y.abs() > screen_height() / 2.0 {
+                    delta.y = delta.y - delta.y.signum() * screen_height();
+                }
                 let distance = delta.length();
                 let direction = delta.normalize();
                 let force = (self.mass * other.mass) / (distance * distance);
